@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Morphic Horizon Explorer</title>
+  <style>
+    body { font-family: sans-serif; background: #1e1e2f; color: #eee; padding: 1em; }
+    input[type=number] { width: 5em; margin-right: 1em; }
+    canvas { border: 1px solid #444; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>Morphic Horizon Explorer</h1>
+  <p>Static spherical geometry with radial <code>Φ(r) = Φ₀ exp(-r/r₀)</code>.</p>
+  <label>Φ₀: <input id="phi0" type="number" step="0.1" value="1"></label>
+  <label>r₀: <input id="r0" type="number" step="0.1" value="5"></label>
+  <label>κ (kappa): <input id="kappa" type="number" step="0.01" value="0.5"></label>
+  <button onclick="simulate()">Simulate</button>
+
+  <canvas id="chart" width="600" height="300"></canvas>
+
+  <script>
+    function simulate() {
+      const phi0 = parseFloat(document.getElementById('phi0').value);
+      const r0 = parseFloat(document.getElementById('r0').value);
+      const kappa = parseFloat(document.getElementById('kappa').value);
+
+      const N = 300, r_max = 25;
+      const dr = r_max / N;
+      const r = Array.from({length: N}, (_, i) => (i + 0.1) * dr);
+
+      const phi = r.map(v => phi0 * Math.exp(-v/r0));
+      const phiPrimeSq = r.map(v => (phi0/r0*Math.exp(-v/r0))**2);
+
+      const m_integral = [0];
+      for (let i = 1; i < N; i++) {
+        m_integral[i] = m_integral[i-1] + phiPrimeSq[i] * r[i]*r[i] * dr;
+      }
+
+      const B = r.map((v, i) => 1 - kappa * m_integral[i] / (v));
+      const A = B.slice(); // simpler: A(r)=B(r)
+
+      const canvas = document.getElementById('chart');
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0,0,600,300);
+      ctx.strokeStyle = '#aaffaa';
+      ctx.beginPath();
+      r.forEach((v,i) => {
+        const x = v / r_max * 600;
+        const y = 300 - B[i] * 150 - 150;
+        if (i===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+      });
+      ctx.stroke(); 
+      ctx.strokeStyle = '#ffaaaa';
+      ctx.beginPath();
+      r.forEach((v,i) => {
+        const x = v / r_max * 600;
+        const y = 300 - A[i] * 150 - 150;
+        if (i===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = '#fff';
+      ctx.fillText('B(r) (green) and A(r) (red)', 10, 20);
+      const rhIndex = B.findIndex(val => val <= 0);
+      if (rhIndex >= 0) {
+        const rh = r[rhIndex].toFixed(2);
+        ctx.fillText('Horizon at r ≈ ' + rh, 10, 40);
+      } else {
+        ctx.fillText('No horizon detected', 10, 40);
+      }
+    }
+
+    simulate();
+  </script>
+</body>
+</html>

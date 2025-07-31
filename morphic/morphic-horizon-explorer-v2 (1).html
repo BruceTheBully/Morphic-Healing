@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Morphic Horizon Explorer</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body style="font-family:sans-serif;background:#0b0e1a;color:white">
+  <h2>🌀 Morphic Horizon Explorer v2.1</h2>
+
+  <label>Φ₀: <input type="number" id="phi0" value="1.0" step="0.1"/></label>
+  <label>r₀: <input type="number" id="r0" value="2.0" step="0.1"/></label>
+  <label>κ (kappa): <input type="number" id="kappa" value="1.0" step="0.1"/></label>
+  <br><br>
+  <button onclick="compute()">Simulate</button>
+  <button onclick="randomHorizon()">🔀 Random Horizon</button>
+
+  <div id="plot" style="height:600px;"></div>
+
+  <script>
+    function simulate(phi0, r0, kappa, auto=false) {
+      const N = 500, rMax = 10, dr = rMax / N;
+      const r = Array.from({length: N}, (_, i) => i * dr);
+      const phi = r.map(v => phi0 * Math.exp(-v / r0));
+      const phiPrimeSq = r.map(v => Math.pow(phi0 / r0 * Math.exp(-v / r0), 2));
+
+      let m_integral = [0];
+      for (let i = 1; i < N; i++) {
+        m_integral[i] = m_integral[i-1] + phiPrimeSq[i] * r[i]**2 * dr;
+      }
+
+      const B = r.map((v, i) => 1 - kappa * m_integral[i] / v);
+      let logExp = 0;
+      const logExpArr = [];
+      for (let i = 0; i < N; i++) {
+        logExp += kappa * r[i] * phiPrimeSq[i] * dr;
+        logExpArr[i] = logExp;
+      }
+
+      const A = B.map((v, i) => v * Math.exp(logExpArr[i]));
+      const horizon = B.findIndex(val => val <= 0);
+      const horizonText = horizon >= 0 ? `📍 Horizon at r ≈ ${r[horizon].toFixed(2)}` : "⛔ No horizon detected";
+
+      if (auto && horizon < 0) return null;
+      if (auto) {
+        document.getElementById("phi0").value = phi0.toFixed(2);
+        document.getElementById("r0").value = r0.toFixed(2);
+        document.getElementById("kappa").value = kappa.toFixed(2);
+      }
+
+      Plotly.newPlot("plot", [
+        { x: r, y: A, name: "A(r)", type: "scatter", line: {color: "cyan"} },
+        { x: r, y: B, name: "B(r)", type: "scatter", line: {color: "magenta"} }
+      ], {
+        title: `Morphic Metric Potentials<br>${horizonText}`,
+        xaxis: { title: "r" },
+        yaxis: { title: "A(r), B(r)" },
+        paper_bgcolor: '#0b0e1a',
+        plot_bgcolor: '#0b0e1a',
+        font: {color: "white"}
+      });
+      return true;
+    }
+
+    function compute() {
+      const phi0 = parseFloat(document.getElementById("phi0").value);
+      const r0 = parseFloat(document.getElementById("r0").value);
+      const kappa = parseFloat(document.getElementById("kappa").value);
+      simulate(phi0, r0, kappa);
+    }
+
+    function randomHorizon() {
+      let tries = 0;
+      while (tries < 1000) {
+        const phi0 = 1 + Math.random() * 3;
+        const r0 = 0.5 + Math.random() * 2;
+        const kappa = 2 + Math.random() * 3;
+        if (simulate(phi0, r0, kappa, true)) break;
+        tries++;
+      }
+    }
+
+    compute();
+  </script>
+</body>
+</html>
