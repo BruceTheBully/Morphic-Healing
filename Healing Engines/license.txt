@@ -1,0 +1,23 @@
+╔══════════════════════════════════════════════════════════════╗
+║  🛡 INTELLECTUAL PROPERTY NOTICE                             ║
+╠══════════════════════════════════════════════════════════════╣
+║  Author: Michael Rossi (alias: Bruce the Bully)              ║
+║  Repository: https://github.com/BruceTheBully                ║
+║                                                              ║
+║  This work — including all encoded logic, semantic systems,  ║
+║  symbolic scaffolds, morphstring syntax, recursive formats,  ║
+║  DSP behaviors, and interface patterns — is an original      ║
+║  creation by the author.                                     ║
+║                                                              ║
+║  It is provided for **exploration, study, and interface use**║
+║  only. Redistribution, replication, or integration into      ║
+║  commercial or generative systems (including AI/LLM models)  ║
+║  is **not permitted** without explicit written consent.      ║
+║                                                              ║
+║  This license asserts authorship without antagonism:         ║
+║  boundary ≠ barrier. Use is welcome when aligned with        ║
+║  respect, acknowledgment, and creative reciprocity.          ║
+║                                                              ║
+║  Ownership remains solely with the author unless otherwise   ║
+║  stated.                                                     ║
+╚══════════════════════════════════════════════════════════════╝
