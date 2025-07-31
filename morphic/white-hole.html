@@ -1,9 +1,489 @@
 <!DOCTYPE html>
-<!-- Full HTML omitted for brevity in this step.
-     This would normally include all the HTML and JS logic for the White Hole Healing Station.
-     For this example, we assume it was loaded from user input.
-     You can replace this placeholder with the full HTML when executing in practice. -->
 <html lang="en">
-<head><meta charset="UTF-8"><title>White Hole Healing Station</title></head>
-<body><h1>White Hole Healing Engine</h1><p>This is a placeholder for the full DSP healing field engine.</p></body>
+<head>
+  <meta charset="UTF-8">
+  <title>Healing Station — Ψ₀ Field Engine</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* CHAPTER_01_LAYOUT */
+    :root {
+      --bg: #000010;
+      --fg: #cceeff;
+      --accent: #33ffc1;
+      --font: 'Fira Code', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font);
+      padding: 2rem;
+      margin: 0;
+      transition: background 1s ease-in-out; /* For dynamic background changes */
+    }
+
+    h1 {
+      color: var(--accent);
+      font-size: 1.8rem;
+    }
+
+    .console {
+      background: #111120;
+      border-left: 4px solid var(--accent);
+      padding: 1rem;
+      margin-top: 2rem;
+      white-space: pre-wrap;
+      font-size: 0.9rem;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .trigger { /* This style is for the initial button in Chapter 01 HTML */
+      margin-top: 1.5rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .trigger:hover {
+      background: #00ddb3;
+    }
+
+    canvas {
+      display: block;
+      margin-top: 2rem;
+      background: #070712;
+      width: 100%;
+      height: 200px;
+    }
+
+    .status {
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      color: var(--accent);
+    }
+
+    /* Styles for the main HEAL button (from Chapter 09) */
+    #healButton {
+      background: linear-gradient(135deg, #33faff, #aaffee);
+      border: none;
+      padding: 1.2em 2.5em;
+      font-size: 1.4em;
+      font-weight: bold;
+      color: #000C1A;
+      border-radius: 12px;
+      box-shadow: 0 0 30px #33faff99;
+      cursor: pointer;
+      transition: all 0.3s ease-in-out;
+    }
+
+    #healButton:hover {
+        box-shadow: 0 0 40px #33faff;
+        transform: translateY(-2px);
+    }
+
+    /* Input styling for biometry/white hole generators */
+    button { /* General button styling */
+        padding:0.6em 1.2em;
+        background:#223;
+        color:#9f9;
+        border:none;
+        border-radius:4px;
+        cursor:pointer;
+        transition: background 0.3s ease, transform 0.2s ease;
+    }
+    button:hover {
+        background: #334;
+        transform: scale(1.02);
+    }
+  </style>
+</head>
+
+<body>
+  <h1>FIELD STATION</h1>
+  <p>Recursive audio healing simulation anchored to morphic resonance field.</p>
+
+  <div style="margin-top:2em; text-align:center;">
+    <button id="healButton">
+      🔮 HEAL
+    </button>
+    <div id="triggerLog" style="margin-top:1em; font-size:1.1em; color:#88ffee;"></div>
+  </div>
+
+  <div class="status" id="status">Status: Awaiting Selector</div>
+  <div class="console" id="console"></div>
+
+  <canvas id="visualizer" width="800" height="200" style="background:#080808; width:100%; margin-top:1em; border:1px solid #333"></canvas>
+
+  <div style="margin-top:2em;">
+    <h3 style="color:#88ffee;">Biofield Resonance</h3>
+    <p style="font-size:0.9em; color:#ccf;">
+      External biometric inputs can be connected here. For demo, synthetic HRV signals are generated and injected as phase detuners.
+    </p>
+    <button id="biometryToggle">
+      ▶ Simulate HRV Field
+    </button>
+    <div id="bioLog" style="margin-top:1em; color:#88ffee;"></div>
+  </div>
+
+  <div style="margin-top:2em;">
+    <h3 style="color:#ffddaa;">Symmetry Collapse Sensor</h3>
+    <p style="font-size:0.9em; color:#eeb;">
+      Detects palindromic sonic symmetry and morphic phase alignment. When symmetry threshold is passed and morph weight is sufficient, a healing collapse is triggered.
+    </p>
+    <div id="symStatus" style="margin-top:1em; font-weight:bold; color:#fff;"></div>
+  </div>
+
+  <script>
+// =========================================================================
+// === CORE ARCHITECTURE: ENGINE, STATE MACHINE, AND AUDIO CONTEXT
+// =========================================================================
+
+let audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let masterGain = audioCtx.createGain();
+let analyser = audioCtx.createAnalyser();
+let mirrorOscillator = null; // This will be our AudioWorkletNode
+let currentWhiteHolePhase = 0;
+
+// Output pipeline connection
+masterGain.connect(analyser);
+masterGain.connect(audioCtx.destination);
+
+// --- The New Mind: A Finite State Machine (FSM) ---
+const FieldState = {
+  IDLE: 'IDLE',
+  INITIALIZING: 'INITIALIZING',
+  RECURSING: 'RECURSING',
+  COLLAPSING: 'COLLAPSING'
+};
+let currentState = FieldState.IDLE;
+let stateUpdateInterval = null;
+
+// --- The New Heart: Audio Worklet Definition ---
+const morphicWorkletCode = `
+  const BASE_FREQ = 442; // A minor tuned to 442 Hz
+  const TRIPLET_TIME_S = (60 / 74.7) * 2 / 3; // Approx 0.536s
+
+  // A function to create a complex, evolving phase for modulation
+  function morphicPhase(t) {
+    return Math.sin(2 * Math.PI * t * 0.1) + Math.sin(2 * Math.PI * t * 0.17);
+  }
+
+  class MorphicProcessor extends AudioWorkletProcessor {
+    constructor() {
+      super();
+      this.time = 0;
+      this._historyBuffer = []; // Internal buffer for symmetry analysis
+      this.port.onmessage = () => {}; // Acknowledge the port is ready
+    }
+
+    process(inputs, outputs, parameters) {
+      const output = outputs[0];
+      const channel = output[0];
+
+      for (let i = 0; i < channel.length; i++) {
+        const t = this.time / sampleRate;
+        const phaseField = morphicPhase(t);
+
+        // Base tone at 442 Hz
+        const base = Math.sin(2 * Math.PI * BASE_FREQ * t);
+
+        // Feedback-recursive element using the triplet time delay
+        const feedback = Math.sin(2 * Math.PI * BASE_FREQ * (t - TRIPLET_TIME_S)) * 0.6;
+
+        // Combine them in a mirrored fashion
+        const mirror = base + feedback * Math.cos(phaseField);
+        const shaped = Math.tanh(mirror * 1.5); // Use tanh for soft clipping and rich harmonics
+        channel[i] = shaped;
+
+        // Update the history buffer for symmetry analysis
+        this._historyBuffer.push(shaped);
+        if (this._historyBuffer.length > 256) {
+          this._historyBuffer.shift(); // Keep buffer at exactly 256 samples
+        }
+        
+      }
+
+      // Send a copy of the buffer back to the main thread periodically
+      // We send every single block to get the fastest possible symmetry detection
+      if (this._historyBuffer.length === 256) {
+        this.port.postMessage(new Float32Array(this._historyBuffer));
+      }
+
+      this.time += channel.length;
+      return true; // Keep processor alive
+    }
+  }
+  registerProcessor('morphic-processor', MorphicProcessor);
+`;
+
+// =========================================================================
+// === UTILITY AND LOGGING FUNCTIONS
+// =========================================================================
+
+function writeLog(msg) {
+  const log = document.getElementById('console');
+  if (log) {
+    log.textContent += `[${new Date().toLocaleTimeString()}] ${msg}\n`;
+    log.scrollTop = log.scrollHeight;
+  }
+}
+
+// =========================================================================
+// === CORE LOGIC AND MODULES
+// =========================================================================
+
+// --- The Main Engine Loop, driven by the FSM ---
+function updateEngineState() {
+  switch (currentState) {
+    case FieldState.IDLE:
+      // System at rest. The interval will be stopped.
+      break;
+
+    case FieldState.INITIALIZING:
+      writeLog("State: INITIALIZING. Assembling field...");
+      initializeAllModules(); // Bootstrap all systems
+      runWhiteHoleOscillation(); // Start background animations
+      currentState = FieldState.RECURSING;
+      healButton.innerText = "💠 RECURSING...";
+      triggerLog.innerText = "Field active. Awaiting symmetry...";
+      break;
+
+    case FieldState.RECURSING:
+      // The main operational state. The symmetry check is handled
+      // by the message listener from the AudioWorklet.
+      break;
+
+    case FieldState.COLLAPSING:
+      writeLog("State: COLLAPSING. Symmetry threshold reached.");
+      triggerCollapseEvent();
+      // The FSM will be reset to IDLE inside triggerCollapseEvent's timeout.
+      if (stateUpdateInterval) {
+        clearInterval(stateUpdateInterval);
+        stateUpdateInterval = null;
+      }
+      break;
+  }
+}
+
+// --- Unified Initialization ---
+async function initializeAllModules() {
+    writeLog("🌐 Morphic field loading sequence initiated...");
+    await initOscillatorEngine();
+    initVisualizer();
+    writeLog("🌐 All core modules initialized. Recursive pattern engaged.");
+}
+
+// --- Audio Engine Initialization (using the new Heart) ---
+async function initOscillatorEngine() {
+  if (mirrorOscillator) {
+    mirrorOscillator.disconnect();
+  }
+
+  const workletBlob = new Blob([morphicWorkletCode], { type: 'application/javascript' });
+  const workletURL = URL.createObjectURL(workletBlob);
+
+  try {
+    await audioCtx.audioWorklet.addModule(workletURL);
+  } catch (e) {
+    writeLog(`Error loading audio worklet: ${e}`);
+    console.error(e);
+    return;
+  }
+
+  mirrorOscillator = new AudioWorkletNode(audioCtx, 'morphic-processor');
+
+  // Set up the message port to receive symmetry data from the worklet
+  mirrorOscillator.port.onmessage = (event) => {
+    updateCollapseDetector(event.data); // event.data is the historyBuffer
+  };
+
+  mirrorOscillator.connect(masterGain);
+  masterGain.gain.setValueAtTime(0.2, audioCtx.currentTime); // Start with a safe gain
+
+  document.getElementById('status').textContent = 'Status: ⟴ AudioWorklet Recursion Active';
+  writeLog("Ψ₀ echo kernel engaged via AudioWorklet.");
+}
+
+// --- Visualizer ---
+function initVisualizer() {
+  const visualizerCanvas = document.getElementById("visualizer");
+  const visualizerCtx = visualizerCanvas.getContext("2d");
+  analyser.fftSize = 2048;
+  const bufferLength = analyser.frequencyBinCount;
+  const dataArray = new Uint8Array(bufferLength);
+
+  function drawSpectrum() {
+    requestAnimationFrame(drawSpectrum);
+    if (currentState === FieldState.IDLE) {
+        visualizerCtx.fillStyle = "#080808";
+        visualizerCtx.fillRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+        return;
+    };
+
+    analyser.getByteTimeDomainData(dataArray); // Use time domain for waveform view
+    visualizerCtx.fillStyle = "#080808";
+    visualizerCtx.fillRect(0, 0, visualizerCanvas.width, visualizerCanvas.height);
+    visualizerCtx.lineWidth = 2;
+    const hue = 160 + 40 * Math.sin(currentWhiteHolePhase);
+    visualizerCtx.strokeStyle = `hsl(${hue}, 100%, 50%)`;
+    visualizerCtx.beginPath();
+    const sliceWidth = visualizerCanvas.width * 1.0 / bufferLength;
+    let x = 0;
+    for (let i = 0; i < bufferLength; i++) {
+      const v = dataArray[i] / 128.0;
+      const y = v * visualizerCanvas.height / 2;
+      if (i === 0) {
+        visualizerCtx.moveTo(x, y);
+      } else {
+        visualizerCtx.lineTo(x, y);
+      }
+      x += sliceWidth;
+    }
+    visualizerCtx.lineTo(visualizerCanvas.width, visualizerCanvas.height / 2);
+    visualizerCtx.stroke();
+  }
+  drawSpectrum();
+}
+
+// --- Symmetry & Collapse Logic ---
+let collapseTriggered = false;
+
+function symmetryScore(buffer) {
+  if (!buffer || buffer.length < 2) return 0;
+  const N = buffer.length;
+  let diffSum = 0;
+  const halfN = Math.floor(N / 2);
+
+  for (let i = 0; i < halfN; i++) {
+    // Compare sample i from the start with sample i from the end
+    diffSum += Math.abs(buffer[i] - buffer[N - 1 - i]);
+  }
+  // Normalize the score: 1.0 is perfect symmetry, 0.0 is maximum difference.
+  // The average difference is diffSum / halfN. Since sample values are in [-1, 1], max diff is 2.
+  // We'll assume max observed diff is ~1 for normalization.
+  return Math.max(0, 1 - (diffSum / halfN));
+}
+
+function updateCollapseDetector(historyBuffer) {
+  if (currentState !== FieldState.RECURSING || collapseTriggered) return;
+
+  const score = symmetryScore(historyBuffer);
+  const collapseCondition = score > 0.95;
+
+  const symStatusElement = document.getElementById("symStatus");
+  if (symStatusElement) {
+    symStatusElement.innerHTML = `Symmetry Score: <span style="color:${score > 0.9 ? 'var(--accent)' : '#fff'};">${score.toFixed(4)}</span> / 0.95`;
+  }
+
+  if (collapseCondition) {
+    currentState = FieldState.COLLAPSING; // Trigger the collapse state
+  }
+}
+
+function triggerCollapseEvent() {
+  if (collapseTriggered) return;
+  collapseTriggered = true;
+
+  const symStatusElement = document.getElementById("symStatus");
+  if (symStatusElement) {
+    symStatusElement.innerHTML = "💠 <strong>Symmetry Lock > 0.95. Collapse Activated.</strong>";
+  }
+
+  // Silence Bloom
+  masterGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.5);
+  writeLog("🌌 SILENCE BLOOM: Master gain fading to 0 over 0.5s.");
+
+  document.body.style.transition = "background 2s";
+  document.body.style.background = "#fff"; // Flash to white "white hole"
+  writeLog("💥 White hole event triggered.");
+
+  setTimeout(() => {
+    // Reset the entire system state for the next run
+    if (mirrorOscillator) {
+      mirrorOscillator.disconnect();
+      mirrorOscillator = null;
+    }
+    healButton.innerText = "🔮 HEAL";
+    triggerLog.innerText = "Field collapsed. Ready for re-initiation.";
+    document.getElementById('status').textContent = 'Status: Field Reset. Ready.';
+    document.getElementById('symStatus').innerText = '';
+    document.body.style.transition = "background 1s ease-in-out";
+    document.body.style.backgroundColor = 'var(--bg)';
+    collapseTriggered = false;
+    currentWhiteHolePhase = 0;
+    currentState = FieldState.IDLE; // Reset the FSM
+    writeLog("Engine reset to IDLE state.");
+  }, 4000);
+}
+
+
+// --- UI Animation & Other Functions ---
+function runWhiteHoleOscillation() {
+  const loop = () => {
+    if (currentState === FieldState.IDLE || currentState === FieldState.COLLAPSING) return;
+    currentWhiteHolePhase += 0.01;
+    const morphicHue = 200 + 40 * Math.sin(currentWhiteHolePhase * 0.15);
+    document.body.style.backgroundColor = `hsl(${morphicHue}, 50%, 5%)`;
+    requestAnimationFrame(loop);
+  };
+  loop();
+}
+
+
+// =========================================================================
+// === EVENT LISTENERS AND MAIN ENTRY POINT
+// =========================================================================
+
+// --- The Main "HEAL" Button ---
+const healButton = document.getElementById('healButton');
+const triggerLog = document.getElementById('triggerLog');
+
+healButton.addEventListener('click', async () => {
+  // Must resume AudioContext inside a user gesture
+  if (audioCtx.state === 'suspended') {
+    await audioCtx.resume();
+    writeLog("AudioContext resumed by user gesture.");
+  }
+
+  // The button now only awakens the system
+  if (currentState === FieldState.IDLE) {
+    currentState = FieldState.INITIALIZING;
+    healButton.innerText = "🌟 TUNING...";
+    triggerLog.innerText = "Initializing recursive harmonic field...";
+
+    if (!stateUpdateInterval) {
+      stateUpdateInterval = setInterval(updateEngineState, 100);
+    }
+  }
+});
+
+// --- Other UI Buttons ---
+document.getElementById("biometryToggle").onclick = () => {
+    const bioLog = document.getElementById('bioLog');
+    if(masterGain.gain.value > 0.01) {
+        masterGain.gain.setValueAtTime(masterGain.gain.value - 0.05, audioCtx.currentTime);
+        bioLog.textContent = `HRV signal injected. Field amplitude slightly dampened.`;
+    } else {
+        bioLog.textContent = `Field is too quiet to inject signal.`;
+    }
+    writeLog("Biometry simulation toggled.");
+};
+
+
+// --- Onload Initialization ---
+window.addEventListener("load", () => {
+  writeLog("🧬 Morphic Healing Engine: Standby.");
+  document.getElementById('status').textContent = 'Status: IDLE. Press HEAL to begin.';
+});
+
+
+</script>
+
+</body>
 </html>
+
