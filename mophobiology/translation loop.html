@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Recursive Translation Loop Simulator</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #00ffcc;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #ffaa00;
+    }
+    .container {
+      background: #111;
+      padding: 20px;
+      border-radius: 10px;
+      border: 1px solid #333;
+    }
+    canvas {
+      background: #000;
+      border: 1px solid #444;
+      display: block;
+      margin-top: 20px;
+    }
+    .controls {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input[type="checkbox"] {
+      margin-right: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔁 Translation Loop Simulator</h1>
+  <div class="container">
+    <div class="controls">
+      <label>
+        <input type="checkbox" id="loopToggle">
+        Enable Loopback After STOP
+      </label>
+    </div>
+
+    <canvas id="loopCanvas" width="600" height="120"></canvas>
+    <div id="outputText"></div>
+  </div>
+
+  <script>
+    const ctx = document.getElementById("loopCanvas").getContext("2d");
+    const codonSequence = ["AUG", "GUC", "CAA", "UGA", "AUG", "UUC", "UGA"];
+    let index = 0;
+    let loopEnabled = false;
+    let animationFrame;
+
+    function drawFrame() {
+      ctx.clearRect(0, 0, 600, 120);
+      ctx.font = "18px monospace";
+
+      codonSequence.forEach((codon, i) => {
+        ctx.fillStyle = i === index ? "#ffaa00" : "#00ffcc";
+        ctx.fillText(codon, 20 + i * 70, 60);
+      });
+
+      const currentCodon = codonSequence[index];
+      const isStop = currentCodon === "UGA";
+
+      let outputMsg = `<strong>Codon ${index + 1}:</strong> ${currentCodon}`;
+      if (isStop) {
+        outputMsg += `<br><em>STOP encountered</em>`;
+        if (loopEnabled) {
+          outputMsg += ` — <strong>Reinitiation triggered!</strong>`;
+          index = 0; // Restart loop
+        } else {
+          cancelAnimationFrame(animationFrame);
+          outputMsg += ` — <strong>Translation halted.</strong>`;
+          return;
+        }
+      } else {
+        index++;
+        if (index >= codonSequence.length) index = 0;
+      }
+
+      document.getElementById("outputText").innerHTML = outputMsg;
+      animationFrame = requestAnimationFrame(() => setTimeout(drawFrame, 600));
+    }
+
+    document.getElementById("loopToggle").addEventListener("change", (e) => {
+      loopEnabled = e.target.checked;
+      index = 0;
+      cancelAnimationFrame(animationFrame);
+      drawFrame();
+    });
+
+    drawFrame();
+  </script>
+</body>
+</html>

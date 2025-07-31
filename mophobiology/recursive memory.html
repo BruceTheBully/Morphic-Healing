@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Memory Echo Morph Visualizer</title>
+  <style>
+    body {
+      background: #000;
+      color: #0ff;
+      font-family: monospace;
+      text-align: center;
+    }
+    h1 {
+      text-shadow: 0 0 10px #0ff;
+    }
+    canvas {
+      background: #111;
+      border: 2px solid #0ff4;
+      box-shadow: 0 0 15px #0ff6;
+      margin: 20px auto;
+      display: block;
+    }
+    .sliders {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    input[type="range"] {
+      width: 160px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧠 Morph Memory Echo Visualizer</h1>
+  <canvas id="canvas" width="900" height="400"></canvas>
+  <div class="sliders">
+    <div class="slider-group">
+      <label>📉 Imprint Decay (δ)</label>
+      <input type="range" min="0.001" max="0.2" step="0.001" value="0.01" id="decay">
+    </div>
+    <div class="slider-group">
+      <label>🔁 Recursion Rate (ω)</label>
+      <input type="range" min="0.01" max="0.3" step="0.01" value="0.05" id="recursion">
+    </div>
+    <div class="slider-group">
+      <label>🧬 Injection Strength</label>
+      <input type="range" min="0.1" max="2" step="0.1" value="1.0" id="strength">
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const decaySlider = document.getElementById("decay");
+    const recursionSlider = document.getElementById("recursion");
+    const strengthSlider = document.getElementById("strength");
+
+    let time = 0;
+    let imprint = 0;
+    const echoTrail = [];
+
+    function draw() {
+      const decay = parseFloat(decaySlider.value);
+      const omega = parseFloat(recursionSlider.value);
+      const strength = parseFloat(strengthSlider.value);
+      const collapse = decay > omega;
+
+      imprint *= (1 - decay);
+      imprint += Math.sin(time * omega * 10) * strength;
+
+      echoTrail.push({ y: canvas.height / 2 + imprint * 30, alpha: 1.0 });
+      if (echoTrail.length > 200) echoTrail.shift();
+
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.beginPath();
+      ctx.strokeStyle = collapse ? "#f0f" : "#0ff";
+      ctx.lineWidth = 2;
+      for (let i = 0; i < echoTrail.length; i++) {
+        const pt = echoTrail[i];
+        ctx.strokeStyle = `rgba(0,255,255,${pt.alpha})`;
+        ctx.beginPath();
+        ctx.arc(100 + i * 4, pt.y, 2 + pt.alpha * 5, 0, Math.PI * 2);
+        ctx.stroke();
+        pt.alpha *= 0.97;
+      }
+
+      time++;
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

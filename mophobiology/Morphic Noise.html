@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Morphic Noise Simulation</title>
+  <style>
+    body {
+      background-color: #000;
+      color: #aaffcc;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #ffcc66;
+    }
+    canvas {
+      background: #111;
+      border: 1px solid #333;
+      display: block;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌀 Morphic Noise as Evolution Engine</h1>
+  <p>Watch selector traces jitter under structured noise to simulate creative emergence in morph-field space.</p>
+  <canvas id="noiseCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("noiseCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const points = [];
+    const maxPoints = 300;
+    let t = 0;
+
+    function generateNoise(t) {
+      // Structured morphic noise: semi-periodic with chaotic bias
+      return 0.5 * Math.sin(t * 0.02) + 0.3 * Math.sin(t * 0.005) + 0.2 * (Math.random() - 0.5);
+    }
+
+    function update() {
+      if (points.length >= maxPoints) points.shift();
+
+      const y = 200 + generateNoise(t) * 100;
+      points.push({ x: t % 800, y });
+
+      t += 1;
+    }
+
+    function draw() {
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.beginPath();
+      ctx.strokeStyle = "#33ffcc";
+      ctx.lineWidth = 2;
+      points.forEach((p, i) => {
+        if (i === 0) ctx.moveTo(p.x, p.y);
+        else ctx.lineTo(p.x, p.y);
+      });
+      ctx.stroke();
+
+      ctx.fillStyle = "#ffaa33";
+      ctx.fillText("Morphic Entropy: Noise-Modulated Selector Trace", 10, 20);
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

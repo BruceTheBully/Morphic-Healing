@@ -1,0 +1,109 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🧠 NeuroCube Binary DSP Simulator</title>
+  <style>
+    body { background-color: #0b0c10; color: #f8f8f2; font-family: 'Courier New', monospace; padding: 20px; }
+    .section { margin-bottom: 30px; }
+    .code { background-color: #1e1f26; padding: 15px; border-radius: 8px; font-size: 14px; white-space: pre-wrap; }
+    .stage { color: #66d9ef; }
+    .tag { color: #f92672; }
+    .value { color: #a6e22e; }
+    .binary { color: #ff79c6; }
+    .meta { color: #fd971f; }
+    .note { color: #9aedfe; font-style: italic; }
+  </style>
+</head>
+<body>
+
+  <div class="section">
+    <div class="stage">🧠 <span class="tag">STAGE 1:</span> Morphic State Composition</div>
+    <div class="code">
+      let NeuroMorph = {
+        focus:    { <span class="value">lpf: false, transient_boost: 0.7, stereo_width: 0.4</span> },
+        alert:    { <span class="value">pan_rate: 1.2, exciter: true, rhythmic_gate: 0.8</span> },
+        calm:     { <span class="value">lpf: true, reverb: 0.9, stereo_width: 1.2</span> },
+        creative: { <span class="value">granular: true, lfo_pitch: 0.5, delay_smear: 0.8</span> }
+      }
+    </div>
+    <div class="note">// Cubic morph map defines neuro-affective space.</div>
+  </div>
+
+  <div class="section">
+    <div class="stage">🎛 <span class="tag">STAGE 2:</span> CubePad Controller → DSP Morph Matrix</div>
+    <div class="code">
+      <span class="tag">input:</span> cube_position = {x: 0.6, y: 0.3, z: 0.8}
+      <span class="tag">weights:</span> W = calculateVertexWeights(cube_position)
+      <span class="tag">mod_matrix:</span> apply(W, NeuroMorph) → output DSP chain
+    </div>
+    <div class="note">// Weights blended across 3D space from cube centroid toward quadrant corners.</div>
+  </div>
+
+  <div class="section">
+    <div class="stage">🔧 <span class="tag">STAGE 3:</span> JSFX/Python Shader Interpretation</div>
+    <div class="code">
+      // JSFX/Realtime
+      @sample
+        signal = input_sample;
+        signal = morphChain(signal, W);
+        signal *= wetmix;
+        spl0 = signal;
+        spl1 = signal;
+    </div>
+    <div class="note">// Runtime modulation baked into each morphZone object using LFO-pulled interpolation.</div>
+  </div>
+
+  <div class="section">
+    <div class="stage">🧬 <span class="tag">STAGE 4:</span> JUCE / iPlug2 Abstraction</div>
+    <div class="code">
+      AudioProcessorValueTreeState parameters;
+      CubeLFO.updateFromGUI();
+      for (int v = 0; v < 4; ++v)
+        morphWeight[v] = CubeLFO.vertexWeight(v);
+      AudioBuffer output = blendChains(inputBuffer, morphWeight);
+    </div>
+    <div class="note">// Plugin compiles in JUCE: 3D GUI cube mesh morphs LFO shape ↔ DSP shape.</div>
+  </div>
+
+  <div class="section">
+    <div class="stage">📦 <span class="tag">STAGE 5:</span> Compiling to Assembly</div>
+    <div class="code">
+      .data
+        morphMatrix dq 0.7, 0.2, 0.05, 0.05
+      .text
+        movsd xmm0, qword ptr [rsi]
+        mulsd xmm0, qword ptr [morphMatrix]
+        ...
+    </div>
+    <div class="note">// Simplified vector blending → DSP structure collapsed to CPU architecture ops.</div>
+  </div>
+
+  <div class="section">
+    <div class="stage">⚙️ <span class="tag">STAGE 6:</span> Binary Compilation Snapshot</div>
+    <div class="code binary">
+      0F 10 05 F8 FF FF FF 
+      F2 0F 59 C1 
+      F2 0F 11 45 E8 
+      ...
+    </div>
+    <div class="note">// Binary encoded morph logic — embedded as compiled plugin kernel in VST3.</div>
+  </div>
+
+  <div class="section">
+    <div class="stage">📓 <span class="tag">LOG:</span> Morph Execution Chain Complete</div>
+    <div class="code meta">
+      MorphExecution[
+        input: MIDI / Audio
+        → cube morph weights
+        → chain modulation map
+        → JSFX interpreted morph pass
+        → JUCE compiled morph chain
+        → ASM-level routing
+        → Binary stream
+      ]
+      :: Payload exported as NeuroCube.vst3
+    </div>
+  </div>
+
+</body>
+</html>

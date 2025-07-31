@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Morphic Feedback Loop</title>
+  <style>
+    body {
+      background-color: #0e0e0e;
+      font-family: monospace;
+      color: #aaffcc;
+      padding: 20px;
+    }
+    h1 {
+      color: #ffaa55;
+    }
+    canvas {
+      background: #111;
+      display: block;
+      margin-top: 20px;
+      border: 2px solid #333;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔁 Morphic Integration Loop Simulator</h1>
+  <p>This visual simulates recursive signal ↔ mutation ↔ feedback loops. Nodes pulse brighter as resonance stabilizes.</p>
+  <canvas id="loopCanvas" width="600" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("loopCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const nodes = [
+      { label: "Signal", x: 300, y: 100, r: 20, pulse: 0 },
+      { label: "Mutation", x: 150, y: 300, r: 20, pulse: 0 },
+      { label: "Feedback", x: 450, y: 300, r: 20, pulse: 0 }
+    ];
+
+    function drawNode(n, intensity) {
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r + intensity, 0, 2 * Math.PI);
+      ctx.fillStyle = `rgba(255,255,255,${0.2 + intensity})`;
+      ctx.fill();
+      ctx.fillStyle = "#aaffcc";
+      ctx.fillText(n.label, n.x - 25, n.y + 40);
+    }
+
+    function drawLink(a, b) {
+      ctx.beginPath();
+      ctx.moveTo(a.x, a.y);
+      ctx.lineTo(b.x, b.y);
+      ctx.strokeStyle = "#ffaa00";
+      ctx.stroke();
+    }
+
+    function loop() {
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Links
+      drawLink(nodes[0], nodes[1]);
+      drawLink(nodes[1], nodes[2]);
+      drawLink(nodes[2], nodes[0]);
+
+      // Pulsing behavior (resonance simulation)
+      nodes.forEach((n, i) => {
+        n.pulse = 2 + Math.sin(Date.now() * 0.002 + i * 2);
+        drawNode(n, n.pulse);
+      });
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

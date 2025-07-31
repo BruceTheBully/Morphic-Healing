@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Evolution Gradient Descent</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #eee;
+      font-family: monospace;
+      padding: 20px;
+    }
+    canvas {
+      display: block;
+      background-color: #222;
+      border: 1px solid #444;
+      margin-top: 20px;
+    }
+    h1 {
+      color: #00ff99;
+    }
+  </style>
+</head>
+<body>
+  <h1>📉 Semantic Gradient Descent Simulator</h1>
+  <p>This simulation shows a gene evolving in morph-space by minimizing semantic misalignment with its environment (Φ).</p>
+  <canvas id="evoCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("evoCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let gene = { a: Math.random(), b: Math.random() };
+    const field = { x: 0.8, y: 0.5 };
+    const learningRate = 0.03;
+
+    const history = [];
+
+    function loss(g) {
+      return Math.pow(g.a - field.x, 2) + Math.pow(g.b - field.y, 2);
+    }
+
+    function gradient(g) {
+      return {
+        da: 2 * (g.a - field.x),
+        db: 2 * (g.b - field.y)
+      };
+    }
+
+    function updateGene() {
+      const grad = gradient(gene);
+      gene.a -= learningRate * grad.da;
+      gene.b -= learningRate * grad.db;
+    }
+
+    function project(g) {
+      return {
+        x: 400 + (g.a - 0.5) * 300,
+        y: 200 + (g.b - 0.5) * 300
+      };
+    }
+
+    function draw() {
+      ctx.fillStyle = "#222";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Field Target
+      const fx = 400 + (field.x - 0.5) * 300;
+      const fy = 200 + (field.y - 0.5) * 300;
+      ctx.beginPath();
+      ctx.arc(fx, fy, 8, 0, 2 * Math.PI);
+      ctx.fillStyle = "#ff4444";
+      ctx.fill();
+      ctx.fillText("Φ Target", fx + 10, fy);
+
+      // Evolution History
+      for (let pt of history) {
+        const proj = project(pt);
+        ctx.beginPath();
+        ctx.arc(proj.x, proj.y, 3, 0, 2 * Math.PI);
+        ctx.fillStyle = "#00f0ff";
+        ctx.fill();
+      }
+
+      // Current Gene
+      const proj = project(gene);
+      ctx.beginPath();
+      ctx.arc(proj.x, proj.y, 6, 0, 2 * Math.PI);
+      ctx.fillStyle = "#00ff99";
+      ctx.fill();
+    }
+
+    function loop() {
+      updateGene();
+      history.push({ ...gene });
+      if (history.length > 60) history.shift();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

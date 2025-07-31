@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BioMorphoetics Chapter 5.6–5.9</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #0f111a;
+      color: #e6f2ff;
+      margin: 0;
+      padding: 2em;
+    }
+    h1, h2 {
+      color: #82cfff;
+    }
+    section {
+      background: #1b1d2b;
+      margin-bottom: 1.5em;
+      padding: 1.5em;
+      border-left: 4px solid #42aaff;
+      border-radius: 8px;
+    }
+    code {
+      background: #2d3041;
+      padding: 0.3em 0.6em;
+      border-radius: 5px;
+      color: #ffd700;
+    }
+    .eq {
+      background: #111319;
+      padding: 0.7em;
+      margin-top: 1em;
+      border-left: 3px solid #ffaa33;
+      font-family: monospace;
+    }
+    button {
+      background: #2c344a;
+      color: #fff;
+      border: none;
+      padding: 0.5em 1em;
+      margin-top: 1em;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <h1>📘 BioMorphoetics — Chapter 5: Morphic Operators</h1>
+  <h2>[T.5.6] Morphostasis</h2>
+  <section>
+    <p>
+      Morphostasis is the <strong>stabilization of form</strong> against entropy.
+      It encodes <em>dynamic equilibrium</em>, not stasis.
+    </p>
+    <div class="eq">
+      Mₛ = limₜ→∞ (dΨ / dt) → 0
+    </div>
+    <button onclick="toggle('ex1')">More Context</button>
+    <div id="ex1" class="hidden">
+      <p>In biology, this appears as homeostasis — a stable internal state preserved through recursive adjustments.</p>
+    </div>
+  </section>
+
+  <h2>[T.5.7] Morphic Loop Amplification</h2>
+  <section>
+    <p>
+      Feedback from output back into input creates <strong>recursive amplification loops</strong>. These drive virality or collapse.
+    </p>
+    <div class="eq">
+      Loop(x) = Ψₜ₊₁ → Ψₜ
+    </div>
+    <button onclick="toggle('ex2')">Show Examples</button>
+    <div id="ex2" class="hidden">
+      <ul>
+        <li>Immune system attacking self (autoimmunity)</li>
+        <li>Meme cascades in social platforms</li>
+      </ul>
+    </div>
+  </section>
+
+  <h2>[T.5.8] Field Interference</h2>
+  <section>
+    <p>
+      Crossing morphic fields produces <strong>semantic interference</strong> — new attractors emerge through hybrid pressure.
+    </p>
+    <div class="eq">
+      Φ₁ ⊕ Φ₂ = Φ<sub>interference</sub>
+    </div>
+    <button onclick="toggle('ex3')">See Implications</button>
+    <div id="ex3" class="hidden">
+      <p>Hybridization in ecosystems, mutation emergence, memetic fusion across cultures.</p>
+    </div>
+  </section>
+
+  <h2>[T.5.9] Morphogenesis as Wavefront</h2>
+  <section>
+    <p>
+      Morphs emerge as <strong>wavefronts</strong> in field-space — not point sources. A phase unlocks and propagates form.
+    </p>
+    <div class="eq">
+      Ψ(x,t) = ∫ Field(Φ) dx ∀ t
+    </div>
+    <button onclick="toggle('ex4')">Explain Phase Unlock</button>
+    <div id="ex4" class="hidden">
+      <p>Phase unlocks release pre-encoded form — like a flower blooming as signal resolves its timing.</p>
+    </div>
+  </section>
+
+  <script>
+    function toggle(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle("hidden");
+    }
+  </script>
+</body>
+</html>

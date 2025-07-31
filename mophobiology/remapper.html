@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Epigenetic Recompiler + JSFX Visual</title>
+  <style>
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #58a6ff;
+    }
+    .module {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      border: 1px solid #30363d;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input[type=range] {
+      width: 100%;
+    }
+    .value {
+      font-size: 0.85em;
+      color: #8b949e;
+    }
+    .output-box {
+      margin-top: 20px;
+      padding: 10px;
+      background: #0d1117;
+      border: 1px dashed #58a6ff;
+    }
+    canvas {
+      background: #010409;
+      border: 1px solid #30363d;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔬 Epigenetic Recompiler + JSFX Simulation</h1>
+
+  <div class="module">
+    <label>Methylation (Silencing)
+      <input type="range" min="0" max="1" step="0.01" id="methyl" value="0.4">
+      <span class="value" id="methylVal">0.4</span>
+    </label>
+    <label>Acetylation (Access Boost)
+      <input type="range" min="0" max="1" step="0.01" id="acetyl" value="0.3">
+      <span class="value" id="acetylVal">0.3</span>
+    </label>
+    <label>miRNA Gain
+      <input type="range" min="0" max="1" step="0.01" id="mirna" value="0.2">
+      <span class="value" id="mirnaVal">0.2</span>
+    </label>
+    <label>Histone Reweight Power
+      <input type="range" min="0" max="1" step="0.01" id="histone" value="0.6">
+      <span class="value" id="histoneVal">0.6</span>
+    </label>
+    <button onclick="render()">Recompile Morph State</button>
+    <div class="output-box" id="output">Awaiting recompiler signal...</div>
+    <canvas id="gfx" width="600" height="150"></canvas>
+  </div>
+
+  <script>
+    const methyl = document.getElementById("methyl");
+    const acetyl = document.getElementById("acetyl");
+    const mirna = document.getElementById("mirna");
+    const histone = document.getElementById("histone");
+    const output = document.getElementById("output");
+    const canvas = document.getElementById("gfx");
+    const ctx = canvas.getContext("2d");
+
+    [methyl, acetyl, mirna, histone].forEach(slider => {
+      slider.oninput = () => {
+        document.getElementById(slider.id + "Val").textContent = slider.value;
+      };
+    });
+
+    function render() {
+      const m = parseFloat(methyl.value);
+      const a = parseFloat(acetyl.value);
+      const mi = parseFloat(mirna.value);
+      const h = parseFloat(histone.value);
+
+      const stability = ((a + mi + h) - m) / 3;
+      const clamped = Math.max(0, Math.min(1, stability));
+      const stable = clamped > 0.6;
+
+      output.innerHTML = `Stability: <strong>${(clamped * 100).toFixed(1)}%</strong> → ${stable ? '✅ Collapse Contained' : '⚠️ Field Instability Detected'}`;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = stable ? '#0f0' : '#f00';
+      ctx.fillRect(50, 50, clamped * 500, 50);
+      ctx.strokeStyle = '#58a6ff';
+      ctx.strokeRect(50, 50, 500, 50);
+    }
+  </script>
+</body>
+</html>

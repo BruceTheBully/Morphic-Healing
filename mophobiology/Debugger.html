@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stop Codon Collapse Gate Visualizer</title>
+  <style>
+    body {
+      background-color: #0f0f0f;
+      color: #ffffff;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #ff69b4;
+    }
+    .container {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border: 1px solid #444;
+    }
+    input {
+      background: #000;
+      color: #f0f0f0;
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+      border: 1px solid #333;
+      margin-bottom: 20px;
+    }
+    .output {
+      background: #222;
+      padding: 15px;
+      border-left: 5px solid #ff69b4;
+    }
+    canvas {
+      background-color: #000;
+      border: 1px solid #555;
+      display: block;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🛑 Stop Codon Collapse Gate Visualizer</h1>
+  <div class="container">
+    <label for="codonInput">Enter a Codon (e.g., UAA, UAG, UGA):</label>
+    <input type="text" id="codonInput" value="UAA" maxlength="3">
+    <canvas id="gateCanvas" width="600" height="100"></canvas>
+    <div class="output" id="codonResult">Awaiting collapse analysis...</div>
+  </div>
+
+  <script>
+    const collapseMap = {
+      UAA: { effect: "Full-stop", type: "Hard Seal", audio: "Silence Initiator" },
+      UAG: { effect: "Meta-Halt", type: "Interruptor", audio: "Gate Crash Silence" },
+      UGA: { effect: "Leak Seal", type: "Exception Port", audio: "Conditional Bounce" }
+    };
+
+    function drawCollapseGate(codon, type) {
+      const ctx = document.getElementById("gateCanvas").getContext("2d");
+      ctx.clearRect(0, 0, 600, 100);
+      ctx.fillStyle = "#ff69b4";
+      ctx.font = "20px monospace";
+      ctx.fillText("Collapse Gate: " + codon, 20, 30);
+      ctx.fillText("Type: " + type, 20, 70);
+    }
+
+    function updateCodon() {
+      const codon = document.getElementById("codonInput").value.toUpperCase();
+      const info = collapseMap[codon];
+      if (info) {
+        drawCollapseGate(codon, info.type);
+        document.getElementById("codonResult").innerHTML = `
+          <strong>${codon}</strong> = <em>${info.effect}</em><br>
+          Collapse Type: <strong>${info.type}</strong><br>
+          Sonically Interpreted As: <em>${info.audio}</em><br><br>
+          This codon acts as a termination portal — sealing the morphic instruction set.`;
+      } else {
+        drawCollapseGate(codon, "Unknown");
+        document.getElementById("codonResult").innerHTML =
+          `<strong>${codon}</strong> is not a recognized stop codon.<br>
+           Try UAA, UAG, or UGA.`;
+      }
+    }
+
+    document.getElementById("codonInput").addEventListener("input", updateCodon);
+    updateCodon();
+  </script>
+</body>
+</html>

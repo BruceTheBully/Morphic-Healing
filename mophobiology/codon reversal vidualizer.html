@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Codon Reversal Visualizer</title>
+  <style>
+    body {
+      background-color: #111;
+      color: #c0ffee;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #7fffd4;
+    }
+    .container {
+      background: #222;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      margin-top: 20px;
+    }
+    select, input {
+      background: #111;
+      color: #f08080;
+      border: 1px solid #555;
+      padding: 8px;
+      width: 100%;
+      margin-top: 10px;
+    }
+    canvas {
+      background: #000;
+      border: 1px solid #555;
+      display: block;
+      margin-top: 20px;
+    }
+    .output {
+      background: #1a1a1a;
+      border-left: 5px solid #7fffd4;
+      padding: 10px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧬 Codon Reversal Visualizer</h1>
+  <div class="container">
+    <label for="codonInput">Enter a 3-letter mRNA Codon:</label>
+    <input type="text" id="codonInput" value="AUG" maxlength="3">
+    <canvas id="codonCanvas" width="600" height="100"></canvas>
+    <div class="output" id="codonInfo">Awaiting input...</div>
+  </div>
+
+  <script>
+    const codonMap = {
+      AUG: { aa: 'Methionine', role: 'Start Codon' },
+      GUA: { aa: 'Valine', role: 'Hydrophobic' },
+      UAA: { aa: 'Stop', role: 'Stop Codon' },
+      UAG: { aa: 'Stop', role: 'Stop Codon' },
+      UGA: { aa: 'Stop', role: 'Stop Codon' },
+      CGU: { aa: 'Arginine', role: 'Basic' },
+      AAA: { aa: 'Lysine', role: 'Basic' }
+    };
+
+    function reverseCodon(codon) {
+      return codon.split('').reverse().join('');
+    }
+
+    function drawCodons(original, reversed) {
+      const ctx = document.getElementById("codonCanvas").getContext("2d");
+      ctx.clearRect(0, 0, 600, 100);
+      ctx.fillStyle = "#7fffd4";
+      ctx.font = "20px monospace";
+      ctx.fillText("Original Codon: " + original, 20, 30);
+      ctx.fillText("Reversed Codon: " + reversed, 20, 70);
+    }
+
+    function updateInfo() {
+      const codon = document.getElementById("codonInput").value.toUpperCase();
+      const reversed = reverseCodon(codon);
+      const origInfo = codonMap[codon] || { aa: "Unknown", role: "Unknown" };
+      const revInfo = codonMap[reversed] || { aa: "Unknown", role: "Unknown" };
+
+      drawCodons(codon, reversed);
+
+      document.getElementById("codonInfo").innerHTML =
+        `<strong>${codon}</strong> → ${origInfo.aa} (${origInfo.role})<br>` +
+        `<strong>${reversed}</strong> → ${revInfo.aa} (${revInfo.role})<br><br>` +
+        `Reversal changes the semantic function of the codon — potentially inverting biological intent.`;
+    }
+
+    document.getElementById("codonInput").addEventListener("input", updateInfo);
+    updateInfo();
+  </script>
+</body>
+</html>

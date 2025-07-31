@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Semantic Ribosome Simulator</title>
+  <style>
+    body {
+      background: #0d1117;
+      color: #c9d1d9;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #58a6ff;
+    }
+    .module {
+      background: #161b22;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      border: 1px solid #30363d;
+    }
+    .output-box {
+      margin-top: 20px;
+      padding: 10px;
+      background: #0d1117;
+      border: 1px dashed #58a6ff;
+    }
+    canvas {
+      background: #010409;
+      border: 1px solid #30363d;
+      margin-top: 20px;
+    }
+    input {
+      background: #0d1117;
+      color: #58a6ff;
+      border: 1px solid #30363d;
+      padding: 5px;
+      width: 100%;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧬 Semantic Ribosome — MorphStream Compiler</h1>
+  <div class="module">
+    <label>Enter mRNA Sequence (Codons: e.g. AUGCGUAAU)
+      <input type="text" id="codonInput" value="AUGCGUAAU">
+    </label>
+    <button onclick="compile()">🧪 Compile</button>
+    <div class="output-box" id="output">Awaiting ribosome instructions...</div>
+    <canvas id="canvas" width="600" height="150"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const codonTable = {
+      'AUG': 'Methionine (Start)',
+      'UUU': 'Phenylalanine',
+      'UUC': 'Phenylalanine',
+      'UUA': 'Leucine',
+      'UUG': 'Leucine',
+      'UAA': 'Stop',
+      'UAG': 'Stop',
+      'UGA': 'Stop',
+      'CGU': 'Arginine',
+      'AAU': 'Asparagine',
+      'GCU': 'Alanine',
+      'GAA': 'Glutamate',
+      'CAU': 'Histidine',
+      'UGG': 'Tryptophan'
+      // Extend further for complete codon coverage
+    };
+
+    function compile() {
+      const input = document.getElementById("codonInput").value.trim().toUpperCase();
+      const output = document.getElementById("output");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (input.length % 3 !== 0) {
+        output.innerHTML = "⚠️ Invalid sequence — codons must be multiples of 3 characters.";
+        return;
+      }
+
+      const codons = input.match(/.{1,3}/g);
+      let protein = [];
+      let x = 50;
+
+      for (let i = 0; i < codons.length; i++) {
+        const codon = codons[i];
+        const aa = codonTable[codon] || "❓ Unknown";
+
+        protein.push(aa);
+
+        ctx.fillStyle = aa === "❓ Unknown" ? "#f00" : "#0f0";
+        ctx.fillText(codon, x, 60);
+        ctx.fillStyle = "#58a6ff";
+        ctx.fillText(aa, x, 90);
+        x += 100;
+      }
+
+      output.innerHTML = `💡 Output Protein Chain:<br><strong>${protein.join(" → ")}</strong>`;
+    }
+  </script>
+</body>
+</html>

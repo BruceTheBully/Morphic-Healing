@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MorphLLM v2 – Lexicon + Echo Engine</title>
+  <style>
+    body { background: #0c0c0c; color: #eee; font-family: monospace; margin: 0; display: flex; flex-direction: column; height: 100vh; }
+    header { background: #08f4; padding: 1em; text-align: center; }
+    #interface { flex: 1; display: flex; }
+    #editor, #memory { width: 50%; padding: 1em; box-sizing: border-box; border-right: 1px solid #333; overflow-y: auto; }
+    #memory { border-right: none; background: #1a1a1a; }
+    textarea { width: 100%; height: 200px; background: #000; color: #0f0; border: none; padding: 1em; font-size: 1em; }
+    button { background: #0ff; color: #000; border: none; padding: 0.5em 1em; margin-top: 0.5em; cursor: pointer; font-weight: bold; }
+    canvas { width: 100%; height: 200px; background: #000; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🧠 MorphLLM v2 – Conversational Morph Engine</h1>
+    <p>Talk to it. Feed it words. Watch it echo morphs.</p>
+  </header>
+  <div id="interface">
+    <div id="editor">
+      <h2>📝 Morph Input</h2>
+      <textarea id="input">// Say something like:
+// emotion: joy
+// concept: memory
+</textarea>
+      <br>
+      <button onclick="parseInput()">Interpret</button>
+      <button onclick="clearMemory()">Clear Memory</button>
+    </div>
+    <div id="memory">
+      <h2>📚 Memory Log</h2>
+      <pre id="log">[memory trace initializes...]\n</pre>
+      <canvas id="morphCanvas"></canvas>
+    </div>
+  </div>
+
+  <script>
+    const input = document.getElementById('input');
+    const log = document.getElementById('log');
+    const canvas = document.getElementById('morphCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+
+    const MorphLexicon = {
+      sadness: { echo: 0.2, hue: "#4466ff", identity: "emotion" },
+      joy:     { echo: 0.9, hue: "#ffcc00", identity: "emotion" },
+      fear:    { echo: 0.3, hue: "#ff2222", identity: "emotion" },
+      memory:  { echo: 0.6, hue: "#cc88ff", identity: "concept" },
+      time:    { echo: 0.7, hue: "#00ccaa", identity: "concept" },
+      silence: { echo: 0.4, hue: "#888888", identity: "state" }
+    };
+
+    let memory = JSON.parse(localStorage.getItem("morphMemory") || "[]");
+    renderMemory();
+
+    function parseInput() {
+      const text = input.value.trim();
+      const lines = text.split('\n').filter(l => l && !l.startsWith('//'));
+      const frame = {};
+      for (let line of lines) {
+        const parts = line.split(':');
+        if (parts.length === 2) {
+          const [key, value] = parts.map(s => s.trim().toLowerCase());
+          frame[key] = value;
+          if (MorphLexicon[value]) Object.assign(frame, MorphLexicon[value]);
+        }
+      }
+      memory.push({ timestamp: Date.now(), data: frame });
+      localStorage.setItem("morphMemory", JSON.stringify(memory));
+      renderMemory();
+      drawMorph(frame);
+      respondToInput(frame);
+    }
+
+    function renderMemory() {
+      log.innerText = memory.map(m =>
+        `[${new Date(m.timestamp).toLocaleTimeString()}]\n` +
+        Object.entries(m.data).map(([k, v]) => `  ${k}: ${v}`).join('\n')
+      ).join('\n\n');
+    }
+
+    function clearMemory() {
+      memory = [];
+      localStorage.removeItem("morphMemory");
+      renderMemory();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function drawMorph(frame) {
+      const color = frame.hue || "#fff";
+      const x = Math.random() * canvas.width;
+      const y = Math.random() * canvas.height;
+      const size = frame.echo ? parseFloat(frame.echo) * 50 : 30;
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function respondToInput(frame) {
+      if (frame.identity === "emotion") {
+        input.value = `emotion: ${frame.value}\nresponse: echo received`;
+      } else if (frame.identity === "concept") {
+        input.value = `concept: ${frame.value}\ninsight: morph retained`;
+      } else {
+        input.value = "// enter more morph lines";
+      }
+    }
+  </script>
+</body>
+</html>

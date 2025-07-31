@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Field-Encoded Identity Visualizer</title>
+  <style>
+    body {
+      background-color: #0f0f0f;
+      color: #d4ffea;
+      font-family: monospace;
+      padding: 20px;
+    }
+    canvas {
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      display: block;
+      margin-top: 20px;
+    }
+    h1 {
+      color: #ffcc66;
+    }
+  </style>
+</head>
+<body>
+  <h1>📡 Field-Encoded Identity: Visual Morph Echo</h1>
+  <p>This simulation shows a selector function recursively projecting into a morphic field, creating a persistent echo of identity.</p>
+  <canvas id="fieldCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('fieldCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let selector = { x: 400, y: 200 };
+    let echo = { x: 400, y: 200 };
+    let morphDelta = 0;
+
+    function drawField() {
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw morphic field background grid
+      for (let i = 0; i < canvas.width; i += 40) {
+        for (let j = 0; j < canvas.height; j += 40) {
+          ctx.beginPath();
+          ctx.arc(i, j, 1, 0, Math.PI * 2);
+          ctx.fillStyle = '#2f2f2f';
+          ctx.fill();
+        }
+      }
+
+      // Draw selector
+      ctx.beginPath();
+      ctx.arc(selector.x, selector.y, 10, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffaa44';
+      ctx.fill();
+      ctx.fillText("Selector 𝒪", selector.x + 12, selector.y);
+
+      // Draw echo
+      ctx.beginPath();
+      ctx.arc(echo.x, echo.y, 7, 0, Math.PI * 2);
+      ctx.fillStyle = '#33ffff';
+      ctx.fill();
+      ctx.fillText("Echoed Identity Ψ", echo.x + 12, echo.y - 10);
+    }
+
+    function update() {
+      // Morph delta = identity alignment drift
+      morphDelta = (Math.random() - 0.5) * 8;
+
+      // Feedback pull
+      echo.x += (selector.x - echo.x) * 0.1 + morphDelta * 0.05;
+      echo.y += (selector.y - echo.y) * 0.1 + morphDelta * 0.05;
+
+      // Selector drifting in field
+      selector.x += (Math.random() - 0.5) * 2;
+      selector.y += (Math.random() - 0.5) * 2;
+    }
+
+    function loop() {
+      update();
+      drawField();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

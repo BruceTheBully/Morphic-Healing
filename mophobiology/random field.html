@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Morphic Stars Evolution Simulator</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: monospace;
+      margin: 0;
+      padding: 0;
+    }
+    canvas {
+      display: block;
+      background: #222;
+      margin: auto;
+      border-bottom: 1px solid #444;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 10px;
+      background: #1a1a1a;
+    }
+    .control-block {
+      margin: 10px;
+      padding: 10px;
+      background: #333;
+      border: 1px solid #555;
+    }
+    .buttons {
+      text-align: center;
+      padding: 10px;
+    }
+    button {
+      background: #00ff99;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      margin: 5px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starCanvas" width="800" height="400"></canvas>
+  <div class="controls" id="controls"></div>
+  <div class="buttons">
+    <button onclick="randomizeTarget()">🎯 New Φ Target</button>
+    <button onclick="resetSimulation()">🔁 Reinitialize Morphs</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("starCanvas");
+    const ctx = canvas.getContext("2d");
+    const morphs = [];
+    let field = { x: 0.75, y: 0.5 };
+    const NUM = 4;
+
+    function createMorph(id) {
+      return {
+        id,
+        gene: { a: Math.random(), b: Math.random() },
+        learningRate: 0.02,
+        color: `hsl(${Math.floor(Math.random() * 360)}, 100%, 70%)`,
+        trail: []
+      };
+    }
+
+    function initMorphs() {
+      morphs.length = 0;
+      for (let i = 0; i < NUM; i++) morphs.push(createMorph(i));
+      setupControls();
+    }
+
+    function randomizeTarget() {
+      field.x = Math.random();
+      field.y = Math.random();
+    }
+
+    function resetSimulation() {
+      initMorphs();
+    }
+
+    function loss(g) {
+      return Math.pow(g.a - field.x, 2) + Math.pow(g.b - field.y, 2);
+    }
+
+    function gradient(g) {
+      return {
+        da: 2 * (g.a - field.x),
+        db: 2 * (g.b - field.y)
+      };
+    }
+
+    function updateMorph(m) {
+      const grad = gradient(m.gene);
+      m.gene.a -= m.learningRate * grad.da;
+      m.gene.b -= m.learningRate * grad.db;
+      m.trail.push({ ...m.gene });
+      if (m.trail.length > 100) m.trail.shift();
+    }
+
+    function project(g) {
+      return {
+        x: 400 + (g.a - 0.5) * 300,
+        y: 200 + (g.b - 0.5) * 300
+      };
+    }
+
+    function draw() {
+      ctx.fillStyle = "#222";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Φ target
+      const fx = 400 + (field.x - 0.5) * 300;
+      const fy = 200 + (field.y - 0.5) * 300;
+      ctx.beginPath();
+      ctx.arc(fx, fy, 6, 0, 2 * Math.PI);
+      ctx.fillStyle = "#ff4444";
+      ctx.fill();
+
+      for (let m of morphs) {
+        for (let pt of m.trail) {
+          const p = project(pt);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, 2, 0, 2 * Math.PI);
+          ctx.fillStyle = m.color;
+          ctx.fill();
+        }
+
+        const now = project(m.gene);
+        ctx.beginPath();
+        ctx.arc(now.x, now.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = m.color;
+        ctx.fill();
+      }
+    }
+
+    function loop() {
+      for (let m of morphs) updateMorph(m);
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    function setupControls() {
+      const controls = document.getElementById("controls");
+      controls.innerHTML = "";
+      for (let m of morphs) {
+        const block = document.createElement("div");
+        block.className = "control-block";
+        block.innerHTML = `<strong>Morph #${m.id}</strong>`;
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = "0.001";
+        slider.max = "0.1";
+        slider.step = "0.001";
+        slider.value = m.learningRate;
+        slider.oninput = (e) => {
+          m.learningRate = parseFloat(e.target.value);
+        };
+
+        const label = document.createElement("label");
+        label.innerText = "Learning Rate";
+        block.appendChild(label);
+        block.appendChild(slider);
+        controls.appendChild(block);
+      }
+    }
+
+    initMorphs();
+    loop();
+  </script>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MorphBuss Interpreter</title>
+  <style>
+    body {
+      margin: 0; padding: 0; font-family: monospace;
+      background: #111; color: #eee;
+      display: flex; height: 100vh;
+    }
+    #editor {
+      width: 35%; padding: 20px; border-right:1px solid #333;
+      overflow-y: auto; background: #1a1a1a;
+    }
+    #canvas {
+      flex:1; background:#000;
+    }
+    #topbar {
+      position: fixed; top:0; right:0; padding:10px;
+      background:#222; z-index:2;
+    }
+    button {
+      background:#0ff; border:none; color:#000; padding:5px 10px;
+      margin-right:5px; cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="editor">
+    <h2>📘 Morph Instructions</h2>
+    <textarea id="code" style="width:100%;height:75%;">// Write morph rules:
+// ex: circle radius=50 color=#0ff speed=0.01
+</textarea>
+  </div>
+  <canvas id="canvas"></canvas>
+  <div id="topbar">
+    <button id="run">▶️ Run</button>
+    <button id="save">💾 Save</button>
+    <button id="load">📂 Load</button>
+    <button id="export">🧬 Export</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    const codeEl = document.getElementById('code');
+    let morphs = [];
+
+    function resize(){ canvas.width=innerWidth*(2/3); canvas.height=innerHeight; }
+    window.onresize = resize; resize();
+
+    function parse(text){
+      const lines = text.split('\n');
+      const arr = [];
+      for(const ln of lines){
+        const c=ln.trim();
+        if(!c||c.startsWith('//')) continue;
+        const m=c.match(/(\w+)\s+(.+)/);
+        if(!m) continue;
+        const type=m[1], props=m[2].split(/\s+/);
+        const obj={type,props:{}};
+        props.forEach(p=>{
+          const kv=p.split('=');
+          if(kv.length===2) obj.props[kv[0]]=isNaN(kv[1])?kv[1]:+kv[1];
+        });
+        arr.push(obj);
+      }
+      return arr;
+    }
+
+    function run(){
+      morphs = parse(codeEl.value);
+      localStorage.setItem('morphs', JSON.stringify(morphs));
+    }
+
+    function load(){
+      const txt = prompt('Paste saved JSON:');
+      try { morphs = JSON.parse(txt); } catch{}
+    }
+
+    function save(){
+      alert(JSON.stringify(morphs));
+    }
+
+    function exportFile(){
+      const blob = new Blob([JSON.stringify(morphs, null,2)],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download='morphs.json'; a.click();
+    }
+
+    document.getElementById('run').onclick=run;
+    document.getElementById('save').onclick=save;
+    document.getElementById('load').onclick=load;
+    document.getElementById('export').onclick=exportFile;
+
+    let t=0;
+    function animate(){
+      ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+      morphs.forEach(m=>{
+        if(m.type==='circle'){
+          const r=m.props.radius||30;
+          const speed=m.props.speed||0.02;
+          const x=canvas.width/2 + Math.cos(t*speed)* (m.props.xoff||0);
+          const y=canvas.height/2 + Math.sin(t*speed)* (m.props.yoff||0);
+          ctx.beginPath();
+          ctx.arc(x,y,r,0,Math.PI*2);
+          ctx.fillStyle=m.props.color||'#0ff';
+          ctx.fill();
+        }
+        if(m.type==='rect'){
+          const w=m.props.w||50,h=m.props.h||50;
+          const speed=m.props.speed||0.02;
+          const x=canvas.width/2 + Math.sin(t*speed)* (m.props.xoff||0);
+          const y=canvas.height/2 + Math.cos(t*speed)* (m.props.yoff||0);
+          ctx.fillStyle=m.props.color||'#f0f';
+          ctx.fillRect(x-w/2, y-h/2, w, h);
+        }
+      });
+      t++;
+      requestAnimationFrame(animate);
+    }
+
+    (function init(){
+      const saved=localStorage.getItem('morphs');
+      if(saved){ morphs=JSON.parse(saved); codeEl.value = ''; }
+      animate();
+    })();
+  </script>
+</body>
+</html>

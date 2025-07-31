@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Phenotypic Resonance UI</title>
+  <style>
+    body {
+      background: radial-gradient(#000, #111);
+      color: #0ff;
+      font-family: monospace;
+      text-align: center;
+      margin: 0;
+    }
+    h1 {
+      text-shadow: 0 0 10px #0ff;
+      margin: 20px 0;
+    }
+    canvas {
+      background: #111;
+      border: 2px solid #0ff8;
+      box-shadow: 0 0 15px #0ff8;
+    }
+    .sliders {
+      margin-top: 10px;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .slider-block {
+      color: #0ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    input[type="range"] {
+      width: 150px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🌱 Phenotypic Resonance Simulator</h1>
+  <canvas id="phenoCanvas" width="800" height="300"></canvas>
+  <div class="sliders">
+    <div class="slider-block">
+      <label>🌊 Field Frequency</label>
+      <input type="range" min="0.01" max="0.5" step="0.01" value="0.1" id="freqSlider">
+    </div>
+    <div class="slider-block">
+      <label>🌀 Morphic Tension</label>
+      <input type="range" min="0.1" max="5" step="0.1" value="1" id="morphSlider">
+    </div>
+    <div class="slider-block">
+      <label>📡 Coupling Strength</label>
+      <input type="range" min="0.0" max="1.0" step="0.01" value="0.5" id="coupleSlider">
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("phenoCanvas");
+    const ctx = canvas.getContext("2d");
+    let t = 0;
+
+    const sliders = {
+      freq: document.getElementById("freqSlider"),
+      morph: document.getElementById("morphSlider"),
+      couple: document.getElementById("coupleSlider")
+    };
+
+    function draw() {
+      const freq = parseFloat(sliders.freq.value);
+      const morph = parseFloat(sliders.morph.value);
+      const couple = parseFloat(sliders.couple.value);
+      const w = canvas.width, h = canvas.height;
+      const n = 200;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.beginPath();
+      for (let i = 0; i <= n; i++) {
+        const x = (i / n) * w;
+        const y = h/2 + Math.sin(freq * (i + t)) * Math.cos((t + i) * 0.01 * morph) * 80 * couple;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = "#0ff";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      t++;
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Serpent Field Capsule: Morph α.1</title>
+  <style>
+    body { background: #000; color: #0ff; font-family: monospace; padding: 1em; }
+    canvas { background: #111; border: 1px solid #0ff3; margin-top: 1em; display: block; }
+    .log, .controls { margin-top: 1em; }
+    .slider { width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>🧬 Serpent Field Capsule: Morph α.1</h1>
+  <div class="controls">
+    <input type="file" id="audioInput" accept="audio/*">
+    <input type="file" id="midiInput" accept=".mid">
+    <label>Gain / Morph</label>
+    <input type="range" id="gainSlider" class="slider" min="0" max="1" step="0.01" value="0.5">
+    <label>BPM (LFO Rate)</label>
+    <input type="range" id="bpmSlider" class="slider" min="60" max="180" step="1" value="120">
+    <label>Waveform</label>
+    <select id="waveformSelect">
+      <option value="sine">Sine</option>
+      <option value="square">Square</option>
+      <option value="saw">Saw</option>
+      <option value="triangle">Triangle</option>
+    </select>
+  </div>
+  <canvas id="visualizer" width="800" height="200"></canvas>
+  <div class="log" id="log">[Morph α.1 Booted...]</div>
+
+  <script>
+    const audioCtx = new (window.AudioContext || webkitAudioContext)();
+    const gainNode = audioCtx.createGain();
+    const analyser = audioCtx.createAnalyser();
+    gainNode.connect(analyser);
+    analyser.connect(audioCtx.destination);
+    analyser.fftSize = 2048;
+    const bufferLength = analyser.frequencyBinCount;
+    const dataArray = new Uint8Array(bufferLength);
+    const canvas = document.getElementById("visualizer");
+    const canvasCtx = canvas.getContext("2d");
+
+    let source = null;
+    let animationId;
+
+    document.getElementById("audioInput").addEventListener("change", function(e) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        audioCtx.decodeAudioData(ev.target.result, function(buffer) {
+          if (source) source.disconnect();
+          source = audioCtx.createBufferSource();
+          source.buffer = buffer;
+          source.loop = true;
+          source.connect(gainNode);
+          source.start();
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    function draw() {
+      animationId = requestAnimationFrame(draw);
+      analyser.getByteFrequencyData(dataArray);
+      canvasCtx.fillStyle = "#000";
+      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+      canvasCtx.beginPath();
+      for (let i = 0; i < bufferLength; i++) {
+        const barHeight = dataArray[i];
+        const x = i * (canvas.width / bufferLength);
+        const y = canvas.height - barHeight / 2;
+        canvasCtx.lineTo(x, y);
+      }
+      canvasCtx.strokeStyle = "#0ff";
+      canvasCtx.stroke();
+    }
+
+    draw();
+
+    document.getElementById("gainSlider").oninput = function() {
+      gainNode.gain.value = parseFloat(this.value);
+    };
+
+    // MIDI upload logging (logic injection placeholder)
+    document.getElementById("midiInput").addEventListener("change", function(e) {
+      const log = document.getElementById("log");
+      const file = e.target.files[0];
+      if (file) {
+        log.innerText += `\n[MIDI Loaded: ${file.name}] → Binding to selector recursion.`;
+      }
+    });
+  </script>
+</body>
+</html>

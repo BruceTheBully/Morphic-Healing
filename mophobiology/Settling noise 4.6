@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Semantic Attractor Basin</title>
+  <style>
+    body {
+      background-color: #0f0f0f;
+      color: #aaffcc;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #ffcc66;
+    }
+    canvas {
+      background: #111;
+      border: 2px solid #333;
+      display: block;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>💠 Semantic Convergence: Morph-Lock Basin</h1>
+  <p>Watch selector traces settle into attractor basins as noise collapses into stability.</p>
+  <canvas id="attractorCanvas" width="800" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById("attractorCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const particles = [];
+    const numParticles = 100;
+    const attractor = { x: 400, y: 200 };
+
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: 0,
+        vy: 0
+      });
+    }
+
+    function update() {
+      particles.forEach(p => {
+        const dx = attractor.x - p.x;
+        const dy = attractor.y - p.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        const force = 1 / (dist * 0.1 + 1);
+        const angle = Math.atan2(dy, dx);
+
+        // Add convergence and slight noise
+        p.vx += Math.cos(angle) * force + (Math.random() - 0.5) * 0.3;
+        p.vy += Math.sin(angle) * force + (Math.random() - 0.5) * 0.3;
+
+        // Damping
+        p.vx *= 0.95;
+        p.vy *= 0.95;
+
+        p.x += p.vx;
+        p.y += p.vy;
+      });
+    }
+
+    function draw() {
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw attractor
+      ctx.beginPath();
+      ctx.arc(attractor.x, attractor.y, 10, 0, 2 * Math.PI);
+      ctx.fillStyle = "#66ffff";
+      ctx.fill();
+
+      // Draw particles
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3, 0, 2 * Math.PI);
+        ctx.fillStyle = "#ffaa33";
+        ctx.fill();
+      });
+
+      ctx.fillStyle = "#aaffcc";
+      ctx.fillText("Particles entering Morph-Lock Attractor Basin", 10, 20);
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>

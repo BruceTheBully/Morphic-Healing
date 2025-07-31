@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🧬 Audible Genome Compiler Simulator</title>
+  <style>
+    body { background: #0b0c10; color: #c0caff; font-family: 'Fira Code', monospace; padding: 2rem; }
+    h1, h2 { color: #82cfff; }
+    .section { margin-bottom: 1.5em; border-left: 4px solid #5fd7aa; padding-left: 1em; }
+    .slider-label { color: #ffa559; }
+    .log { background: #1e1e29; color: #b3b3b3; padding: .5em; height: 150px; overflow-y: scroll; font-size: .9em; }
+    .codon { color: #9bf; }
+  </style>
+</head>
+<body>
+
+<h1>🧬 Audible Genome Compiler Simulator</h1>
+
+<div class="section">
+  <h2>🔧 Sliders: Codon Predicate Engine</h2>
+  <label class="slider-label">Epigenetic Pressure (Δ<sub>t</sub>):</label>
+  <input id="pressure" type="range" min="0" max="1" step="0.01" value="0.5"><br>
+  <label class="slider-label">Morph Context Strength (Φ):</label>
+  <input id="context" type="range" min="0" max="1" step="0.01" value="0.7"><br>
+  <label class="slider-label">Signal Overlay (G<sub>t</sub>):</label>
+  <input id="overlay" type="range" min="0" max="1" step="0.01" value="0.3"><br>
+</div>
+
+<div class="section">
+  <h2>🧬 Input Codon Stream</h2>
+  <textarea id="codons" rows="3" cols="50">AUG GGC CGC AAA UAA</textarea><br>
+  <button id="renderBtn">▶️ Render Audio & Log</button>
+</div>
+
+<div class="section">
+  <h2>📋 Processing Log</h2>
+  <div id="log" class="log"></div>
+</div>
+
+<script>
+  const pressure = document.getElementById('pressure');
+  const context = document.getElementById('context');
+  const overlay = document.getElementById('overlay');
+  const codonArea = document.getElementById('codons');
+  const logEl = document.getElementById('log');
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  const ctx = new AudioCtx();
+
+  function predicateWeight(codon) {
+    const base = codon.trim();
+    const p = +pressure.value;
+    const Φ = +context.value;
+    const G = +overlay.value;
+    // Token influence mapping
+    let baseScore = 0;
+    if (base === 'AUG') baseScore = 2;
+    if (base === 'UAA'||base==='UAG'||base==='UGA') baseScore = -1;
+    if (base === 'GGC') baseScore = 1.5;
+    if (base === 'CGC') baseScore = 1;
+    if (base === 'AAA') baseScore = 1.2;
+    // Weighted semantic weight
+    return baseScore * (Φ + p * 0.5 + G * 0.3);
+  }
+
+  function log(msg) {
+    logEl.textContent += msg + "\n";
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function playTone(freq, duration = 0.3) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.1, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  }
+
+  document.getElementById('renderBtn').addEventListener('click', () => {
+    log("--- BEGIN RENDER ---");
+    const codons = codonArea.value.split(/\s+/);
+    codons.forEach((c,i) => {
+      const w = predicateWeight(c);
+      const freq = 220 + w * 50;
+      log(`[${i}] codon <span class="codon">${c}</span> → weight: ${w.toFixed(2)}, freq: ${freq.toFixed(1)} Hz`);
+      playTone(freq, 0.2);
+    });
+    log("--- END RENDER ---");
+  });
+</script>
+
+</body>
+</html>

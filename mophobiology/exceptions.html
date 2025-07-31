@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>SECIS Exception Codon Simulator</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #d0ffd0;
+      font-family: monospace;
+      padding: 20px;
+    }
+    h1 {
+      color: #ffb347;
+    }
+    .container {
+      background: #1a1a1a;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 20px;
+      border: 1px solid #333;
+    }
+    label, input {
+      display: block;
+      margin-bottom: 10px;
+    }
+    input[type="checkbox"] {
+      display: inline-block;
+      width: auto;
+    }
+    canvas {
+      background: #000;
+      border: 1px solid #444;
+      margin-top: 20px;
+    }
+    .output {
+      background: #222;
+      padding: 15px;
+      border-left: 5px solid #ffb347;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🧬 SECIS Codon Exception Simulator</h1>
+  <div class="container">
+    <label for="codonInput">Codon:</label>
+    <input type="text" id="codonInput" value="UGA" maxlength="3">
+
+    <label><input type="checkbox" id="secisCheck"> SECIS Element Present</label>
+
+    <canvas id="simCanvas" width="600" height="100"></canvas>
+
+    <div class="output" id="resultOutput">Awaiting codon...</div>
+  </div>
+
+  <script>
+    function drawSim(codon, hasSECIS, result) {
+      const ctx = document.getElementById("simCanvas").getContext("2d");
+      ctx.clearRect(0, 0, 600, 100);
+      ctx.fillStyle = "#ffb347";
+      ctx.font = "20px monospace";
+      ctx.fillText(`Codon: ${codon}`, 20, 30);
+      ctx.fillText(`SECIS Present: ${hasSECIS}`, 20, 60);
+      ctx.fillText(`Result: ${result}`, 20, 90);
+    }
+
+    function updateSimulation() {
+      const codon = document.getElementById("codonInput").value.toUpperCase();
+      const hasSECIS = document.getElementById("secisCheck").checked;
+      let output = "";
+
+      if (codon === "UGA") {
+        if (hasSECIS) {
+          output = "Selenocysteine (Sec) — EXCEPTION HANDLED";
+        } else {
+          output = "STOP — TERMINATION GATE TRIGGERED";
+        }
+      } else {
+        output = "Normal Codon — Not a Collapse Gate";
+      }
+
+      drawSim(codon, hasSECIS, output);
+      document.getElementById("resultOutput").innerHTML =
+        `<strong>${codon}</strong>: ${output}<br><br>` +
+        `SECIS presence redefines UGA's function — proving that codons exist as conditional morph gates.`;
+    }
+
+    document.getElementById("codonInput").addEventListener("input", updateSimulation);
+    document.getElementById("secisCheck").addEventListener("change", updateSimulation);
+    updateSimulation();
+  </script>
+</body>
+</html>

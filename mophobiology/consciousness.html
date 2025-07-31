@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>🌌 Morphic Consciousness Field</title>
+  <style>
+    body { background: #000; color: #0ff; font-family: monospace; padding: 20px; }
+    canvas { background: #111; display: block; margin: 20px 0; border: 1px solid #333; }
+    #stats, button { margin-top: 10px; color: #fff; }
+    button { background: #222; border: 1px solid #0ff; padding: 4px 10px; margin-right: 10px; cursor: pointer; }
+    button:hover { background: #0ff; color: black; }
+  </style>
+</head>
+<body>
+
+<h2>🧠 Morphic Field Resonance Simulator</h2>
+<p>φ₀ = Ideal Field | φₜ = Current State | τ = Morphic Tension</p>
+<canvas id="sim" width="600" height="200"></canvas>
+<div id="stats">🧠 Initializing...</div>
+<div>
+  <button onclick="injectEntropy()">💥 Entropy Spike</button>
+  <button onclick="injectDream()">🌙 Induce Dream</button>
+  <button onclick="resyncField()">🔄 Resync Baseline</button>
+</div>
+
+<script>
+const canvas = document.getElementById("sim");
+const ctx = canvas.getContext("2d");
+const W = canvas.width, H = canvas.height;
+
+let φ₀ = Array.from({length: W}, () => Math.random()); // Ideal field
+let φₜ = φ₀.map(v => v + (Math.random() - 0.5) * 0.2);  // Perturbed field
+let τ = φ₀.map((v, i) => Math.abs(v - φₜ[i]));          // Tension field
+
+let frame = 0;
+
+// 🌀 Harmonize
+function step() {
+  for (let i = 0; i < W; i++) {
+    const diff = φ₀[i] - φₜ[i];
+    φₜ[i] += diff * 0.05 + (Math.random() - 0.5) * 0.002;
+    φₜ[i] = Math.max(0, Math.min(1, φₜ[i])); // clamp between 0 and 1
+    τ[i] = Math.abs(φ₀[i] - φₜ[i]);
+  }
+}
+
+// 🎨 Draw
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+  for (let i = 0; i < W; i++) {
+    ctx.strokeStyle = "#0ff";
+    ctx.beginPath();
+    ctx.moveTo(i, H);
+    ctx.lineTo(i, H - φ₀[i] * H);
+    ctx.stroke();
+
+    ctx.strokeStyle = τ[i] > 0.1 ? "#f00" : "#0f0";
+    ctx.beginPath();
+    ctx.moveTo(i, H);
+    ctx.lineTo(i, H - φₜ[i] * H);
+    ctx.stroke();
+  }
+
+  const avg = τ.reduce((a, b) => a + b, 0) / τ.length;
+  document.getElementById("stats").innerText =
+    `🌀 Frame: ${frame++} | τ_avg: ${avg.toFixed(4)} | Status: ${avg < 0.05 ? "✅ Stable" : "⚠️ Perturbed"}`;
+}
+
+// ♾️ Runtime Loop
+function loop() {
+  step();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// 💥 Entropy Shock
+function injectEntropy() {
+  for (let i = 0; i < W; i++) {
+    φₜ[i] += (Math.random() - 0.5) * 0.5;
+  }
+}
+
+// 🌙 Semantic Dream Field
+function injectDream() {
+  const freq = Math.random() * 10 + 3;
+  for (let i = 0; i < W; i++) {
+    φₜ[i] += Math.sin(i / freq) * 0.1 + (Math.random() - 0.5) * 0.02;
+  }
+}
+
+// 🔄 Set current state as new ideal
+function resyncField() {
+  φ₀ = φₜ.map(x => x);
+}
+
+loop();
+</script>
+</body>
+</html>
